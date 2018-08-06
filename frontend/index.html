@@ -8,8 +8,7 @@
 
     // Success callback
     .then(function (stream) {
-
-      var options = {};
+      var options = { threshold: -50 };
       var speechEvents = hark(stream, options);
       var mediaRecorder = new MediaRecorder(stream);
       var chunks = [];
@@ -49,10 +48,10 @@
     );
 
   function sendToServer(blob) {
-    fetch('http://localhost:8001/api/guess', {
+    fetch('http://192.168.80.143:8000/api/guess', {
       method: 'POST',
       body: blob,
-      headers: { "Content-Type" : "text/plain" }
+      headers: { "Content-Type": "text/plain" }
     });
   }
 </script>
