@@ -49,9 +49,10 @@
     );
 
   function sendToServer(blob) {
-    fetch('http://192.168.20.79:8000/api/guess', {
+    fetch('http://localhost:8001/api/guess', {
       method: 'POST',
-      body: blob
+      body: blob,
+      headers: { "Content-Type" : "text/plain" }
     });
   }
 </script>
