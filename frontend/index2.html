@@ -1,0 +1,76 @@
+<button>Record</button>
+
+<script src="lib/recorder.min.js"></script>
+<script>
+  let isRecording = false;
+  let recorder = null;
+  document.querySelector('button').addEventListener('click', () => {
+    if (isRecording) {
+      isRecording = false;
+      stopRecording();
+    } else {
+      isRecording = true;
+      startRecording();
+    }
+  });
+
+  function startRecording() {
+
+    if (!Recorder.isRecordingSupported()) {
+      alert("Recording features are not supported in your browser.");
+      return;
+    }
+    recorder = new Recorder({
+      monitorGain: 0,
+      numberOfChannels: 1,
+      bitRate: 48000,
+      encoderSampleRate: 48000,
+      encoderPath: "lib/encoderWorker.min.js"
+    });
+
+    recorder.addEventListener("dataAvailable", function (e) {
+      download(e.detail, 'sample.ogg', 'audio/ogg');
+      document.querySelector('button').textContent = 'Record';
+    });
+    recorder.initStream();
+    recorder.addEventListener("streamReady", function (e) {
+      document.querySelector('button').textContent = 'Recording...';
+      recorder.start();
+    });
+
+  }
+
+  function encode64(bytes) {
+    var binary = '',
+      len = bytes.byteLength;
+
+    for (var i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
+  }
+
+  function stopRecording() {
+    recorder.stop();
+  }
+
+
+  function download(data, filename, type) {
+    var file = new Blob([data], { type: type });
+    if (window.navigator.msSaveOrOpenBlob) // IE10+
+      window.navigator.msSaveOrOpenBlob(file, filename);
+    else { // Others
+      var a = document.createElement("a"),
+        url = URL.createObjectURL(file);
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function () {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 0);
+    }
+  }
+
+</script>
