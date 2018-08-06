@@ -43,10 +43,6 @@ define(["angular"], function(angular) {
           });
 
           mediaRecorder.onstop = function(e) {
-            var audio = document.createElement("audio");
-
-            audio.setAttribute("controls", "");
-
             var blob = new Blob(chunks, { type: "audio/wav" });
             sendToServer(blob, handleResponse);
           };

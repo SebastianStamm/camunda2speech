@@ -1,57 +1,62 @@
-<script src="lib/hark.bundle.js"></script>
+<div id="results">
+  <span id="final_span" class="final"></span>
+  <span id="interim_span" class="interim"></span>
+  <p>
+</div>
 <script>
-  navigator.mediaDevices.getUserMedia(
-    // constraints - only audio needed for this app
-    {
-      audio: true
-    })
+  var final_transcript = '';
+  var recognizing = false;
 
-    // Success callback
-    .then(function (stream) {
-      var options = { threshold: -50 };
-      var speechEvents = hark(stream, options);
-      var mediaRecorder = new MediaRecorder(stream);
-      var chunks = [];
-      mediaRecorder.ondataavailable = function (e) {
-        chunks.push(e.data);
-      }
-
-      speechEvents.on('speaking', function () {
-        console.log('start speaking');
-        mediaRecorder.start();
-      });
-
-      speechEvents.on('stopped_speaking', function () {
-        console.log('stop speaking');
-        mediaRecorder.stop();
-      });
-
-      mediaRecorder.onstop = function (e) {
-        var audio = document.createElement('audio');
-
-        audio.setAttribute('controls', '');
-
-        var blob = new Blob(chunks, { 'type': 'audio/wav' });
-        chunks = [];
-        var audioURL = window.URL.createObjectURL(blob);
-        audio.src = audioURL;
-        document.body.appendChild(audio);
-
-        sendToServer(blob);
-      }
-    })
-
-    // Error callback
-    .catch(function (err) {
-      console.log('The following getUserMedia error occured: ' + err);
+  var recognition = new webkitSpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.onstart = function () {
+    recognizing = true;
+  };
+  recognition.onend = function () {
+    recognizing = false;
+    if (window.getSelection) {
+      window.getSelection().removeAllRanges();
+      var range = document.createRange();
+      range.selectNode(document.getElementById('final_span'));
+      window.getSelection().addRange(range);
     }
-    );
+  };
+  recognition.onresult = function (event) {
+    var interim_transcript = '';
+    for (var i = event.resultIndex; i < event.results.length; ++i) {
+      if (event.results[i].isFinal) {
+        final_transcript += event.results[i][0].transcript;
+      } else {
+        interim_transcript += event.results[i][0].transcript;
+      }
+    }
+    final_transcript = capitalize(final_transcript);
+    final_span.innerHTML = linebreak(final_transcript);
+    interim_span.innerHTML = linebreak(interim_transcript);
+  };
 
-  function sendToServer(blob) {
-    fetch('http://192.168.80.143:8000/api/guess', {
-      method: 'POST',
-      body: blob,
-      headers: { "Content-Type": "text/plain" }
-    });
+  var two_line = /\n\n/g;
+  var one_line = /\n/g;
+  function linebreak(s) {
+    return s.replace(two_line, '<p></p>').replace(one_line, '<br>');
   }
+  var first_char = /\S/;
+  function capitalize(s) {
+    return s.replace(first_char, function (m) { return m.toUpperCase(); });
+  }
+  function startButton(event) {
+    if (recognizing) {
+      recognition.stop();
+      return;
+    }
+    final_transcript = '';
+    recognition.lang = 'en-US';
+    recognition.start();
+    ignore_onend = false;
+    final_span.innerHTML = '';
+    interim_span.innerHTML = '';
+  }
+
+  startButton();
 </script>
