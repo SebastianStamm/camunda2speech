@@ -37,6 +37,8 @@
         var audioURL = window.URL.createObjectURL(blob);
         audio.src = audioURL;
         document.body.appendChild(audio);
+
+        sendToServer(blob);
       }
     })
 
@@ -45,4 +47,11 @@
       console.log('The following getUserMedia error occured: ' + err);
     }
     );
+
+  function sendToServer(blob) {
+    fetch('http://192.168.20.79:8000/api/guess', {
+      method: 'POST',
+      body: blob
+    });
+  }
 </script>
