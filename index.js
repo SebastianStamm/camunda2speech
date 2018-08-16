@@ -34,6 +34,7 @@ define(["angular"], function(angular) {
       if (/start.*process/gi.test(processed)) {
         document.querySelectorAll('[ng-click="open()"]')[1].click();
         state = "processStart";
+        return;
       }
 
       // goto filter
@@ -45,9 +46,10 @@ define(["angular"], function(angular) {
             filters[i].querySelector("a").click();
             window.setTimeout(() => {
               document.querySelector(".task .clickable").click();
-            }, 700);
+            }, 900);
           }
         }
+        return;
       }
 
       // next task
@@ -56,6 +58,7 @@ define(["angular"], function(angular) {
           .querySelector(".task.active")
           .nextElementSibling.querySelector(".clickable")
           .click();
+        return;
       }
 
       // previous task
@@ -64,6 +67,15 @@ define(["angular"], function(angular) {
           .querySelector(".task.active")
           .previousElementSibling.querySelector(".clickable")
           .click();
+        return;
+      }
+
+      if (/complete.*task/gi.test(processed)) {
+        document.querySelector('button[ng-click="complete()"]').click();
+        window.setTimeout(() => {
+          document.querySelector(".task .clickable").click();
+        }, 900);
+        return;
       }
 
       // claim task
@@ -75,8 +87,27 @@ define(["angular"], function(angular) {
           document.querySelector(".unclaim").click();
           window.setTimeout(
             () => document.querySelector(".claim").click(),
-            700
+            900
           );
+        }
+        return;
+      }
+
+      const inputFields = document.querySelectorAll(
+        "[cam-tasklist-form] input:not([readonly])"
+      );
+      for (let i = 0; i < inputFields.length; i++) {
+        const label = inputFields[i].parentNode.textContent
+          .toLowerCase()
+          .trim()
+          .replace(/\W/g, "");
+        if (processed.replace(/\W/g, "").includes(label)) {
+          if (/\Wyes\W/gi.test(" " + processed + " ")) {
+            inputFields[i].checked = true;
+          }
+          if (/\Wno\W/gi.test(" " + processed + " ")) {
+            inputFields[i].checked = false;
+          }
         }
       }
     }
