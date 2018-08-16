@@ -28,6 +28,12 @@ define(["angular"], function(angular) {
     if (/(enable|activate).*night.*mode/gi.test(processed)) {
       document.body.style.transition = "filter 1s";
       document.body.style.filter = "invert(100%)";
+      document.body.style.height = "100vh";
+    }
+
+    if (/(refresh|reload).*page/gi.test(processed)) {
+      window.location.reload();
+      return;
     }
 
     if (state === "") {
