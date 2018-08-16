@@ -35,6 +35,50 @@ define(["angular"], function(angular) {
         document.querySelectorAll('[ng-click="open()"]')[1].click();
         state = "processStart";
       }
+
+      // goto filter
+      const matches = new RegExp("go.*filter (.*)$", "gi").exec(processed);
+      if (matches) {
+        const filters = document.querySelectorAll(".task-filter");
+        for (let i = 0; i < filters.length; i++) {
+          if (filters[i].textContent.toLowerCase().includes(matches[1])) {
+            filters[i].querySelector("a").click();
+            window.setTimeout(() => {
+              document.querySelector(".task .clickable").click();
+            }, 700);
+          }
+        }
+      }
+
+      // next task
+      if (/next task/gi.test(processed)) {
+        document
+          .querySelector(".task.active")
+          .nextElementSibling.querySelector(".clickable")
+          .click();
+      }
+
+      // previous task
+      if (/previous task/gi.test(processed)) {
+        document
+          .querySelector(".task.active")
+          .previousElementSibling.querySelector(".clickable")
+          .click();
+      }
+
+      // claim task
+      if (/claim.*task/gi.test(processed)) {
+        const claimButton = document.querySelector(".claim");
+        if (claimButton) {
+          claimButton.click();
+        } else {
+          document.querySelector(".unclaim").click();
+          window.setTimeout(
+            () => document.querySelector(".claim").click(),
+            700
+          );
+        }
+      }
     }
 
     if (state === "processStart") {
@@ -57,6 +101,7 @@ define(["angular"], function(angular) {
           .querySelector('.modal-footer button[type="submit"]')
           .removeAttribute("disabled");
         document.querySelector('.modal-footer button[type="submit"]').click();
+        state = "";
       }
 
       const fields = document.querySelectorAll(".modal-body form .form-group");
