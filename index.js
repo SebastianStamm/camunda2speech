@@ -1,12 +1,32 @@
 define(["angular"], function(angular) {
   var ngModule = angular.module("tasklist.speak", []);
 
+  let finalTranscript = "";
+
+  const scroller = document.createElement("div");
+  scroller.style.position = "fixed";
+  scroller.style.bottom = "20px";
+  scroller.style.width = "100vw";
+  scroller.style.fontSize = "4em";
+  scroller.style.zIndex = "10000";
+  scroller.style.padding = "0.5em";
+  scroller.style.backgroundColor = "rgba(255,255,255,0.8)";
+  scroller.style.pointerEvents = "none";
+  scroller.style.textShadow = "2px 2px 2px lightgray";
+  scroller.style.whiteSpace = "nowrap";
+  scroller.style.overflow = "hidden";
+
+  document.body.appendChild(scroller);
+
+  // scroller.textContent = "Hell world, this should work now";
+
   const recognition = new webkitSpeechRecognition();
 
   let state = "";
 
   recognition.continuous = true;
   recognition.lang = "en-US";
+  recognition.interimResults = true;
 
   recognition.onend = function() {
     recognition.start();
@@ -14,8 +34,20 @@ define(["angular"], function(angular) {
 
   recognition.onresult = function(event) {
     console.log("got a result", event);
+    let interimTranscript = "";
     for (var i = event.resultIndex; i < event.results.length; ++i) {
-      handle(event.results[i][0].transcript);
+      if (event.results[i].isFinal) {
+        finalTranscript += " " + event.results[i][0].transcript;
+        handle(event.results[i][0].transcript);
+      } else {
+        interimTranscript += " " + event.results[i][0].transcript;
+      }
+      scroller.innerHTML =
+        finalTranscript +
+        ' <span style="color: #ccc;">' +
+        interimTranscript +
+        "</span>";
+      scroller.scrollLeft = Number.MAX_SAFE_INTEGER;
     }
   };
 
@@ -25,7 +57,7 @@ define(["angular"], function(angular) {
     console.log("recognized text", text);
 
     const processed = text.toLowerCase().trim();
-    if (/(enable|activate).*night.*mode/gi.test(processed)) {
+    if (/(enable|activate).*(night|dark).*mode/gi.test(processed)) {
       document.body.style.transition = "filter 1s";
       document.body.style.filter = "invert(100%)";
       document.body.style.height = "100vh";
